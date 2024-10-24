@@ -18,8 +18,8 @@ class Defaults:
   TEXT = ""
   
   def rectPoints(pos):
-    Xoffset = 50
-    Yoffset = 25
+    Xoffset = 60
+    Yoffset = 35
     
     top_left = (pos[X]-Xoffset, pos[Y]+Yoffset)
     top_right = (pos[X]+Xoffset, pos[Y]+Yoffset)
@@ -38,7 +38,19 @@ class Defaults:
     right = (pos[X]+offset, pos[Y])
     
     return (top, left, bottom, right)
+
+  def ovalPoints(pos):
+    Xoffset = 60
+    Yoffset = 40
+
+    top_left = (pos[X]-Xoffset, pos[Y]+Yoffset)
+    top_right = (pos[X]+Xoffset, pos[Y]+Yoffset)
     
+    bottom_right = (pos[X]+Xoffset, pos[Y]-Yoffset)
+    bottom_left = (pos[X]-Xoffset, pos[Y]-Yoffset)
+    
+    return (top_left, top_right, bottom_right, bottom_left)
+
     
 
 # ----------------- PYGAME VARS
@@ -57,9 +69,9 @@ class Quad:
     self.points = points
 
 class Ellipse:
-  def __init__(self, dia_x, dia_y=None):
-    self.dia = dia_x if (dia_x == dia_y) or (dia_y==None) else (dia_x, dia_y)
-    
+  def __init__(self, points):
+    self.points = points
+
 class Square(Quad):
   TOPLEFT = 0
   TOPRIGHT = 1
@@ -100,7 +112,8 @@ def get_next_id():
 def get_arrow_lines(startObj, endObj):
   pass 
 
-def check
+def check_if_pos_empty(pos):
+    pass
 
 def draw_obj(obj):
   
@@ -109,10 +122,11 @@ def draw_obj(obj):
       pyg.draw.polygon(screen, obj.color, obj.shape.points)
     
     case Oval():
-      pass
+      width = obj.shape.points[1][X] - obj.shape.points[0][X]
+      height = obj.shape.points[0][Y] - obj.shape.points[3][Y]
+
+      pyg.draw.ellipse(screen, obj.color, pyg.Rect(*obj.shape.points[3], width, height))
     
-    
-  
 
 # ----------------------------
 
@@ -159,7 +173,7 @@ class Action(Object):
         try:
           self.shape = kwargs["shape"]
         except KeyError:
-          self.shape = Square(Defaults.rectPoints(self.pos))
+          self.shape = Rectangle(Defaults.rectPoints(self.pos))
 
 class Condition(Object):
     def __init__(self, *args, **kwargs):
@@ -170,8 +184,20 @@ class Condition(Object):
         except KeyError:
           self.shape = Rhombus(Defaults.rhombusPoints(self.pos))
 
-objects.append(Action())
-objects.append(Condition())
+class StartStop(Object):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        try:
+            self.shape = kwargs["shape"]
+        except KeyError:
+            self.shape = Oval(Defaults.ovalPoints(self.pos))
+
+objects.extend([
+    Condition(pos=(500, 500)),
+    Action(pos=(400,400)),
+    StartStop(),
+])
 
 # -------------------------------- GAME LOOP
 while running:
